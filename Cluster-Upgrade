@@ -1,0 +1,149 @@
+
+advertise client URLs = https://172.17.0.28:2379
+
+ETCDCTL_API=3 etcdctl member list --endpoints=https://[127.0.0.1]:2379 --cacert=/etc/kubernetes/pki/etcd/ca.cert \ --cert=/etc/kubernetes/pki/etcd/server.cert --key=/etc/kubernetes/pki/etcd/server.key 
+
+ETCDCTL_API=3 etcdctl --endpoints=https://[127.0.0.1]:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.crt --key=/etc/kubernetes/pki/etcd/server.key snapshot save /opt/snapshot-pre-boot.db
+
+ETCDCTL_API=3 etcdctl  --data-dir /var/lib/etcd-from-backup \
+snapshot restore /opt/snapshot-pre-boot.db 
+
+apt-mark unhold kubeadm && \
+apt-get update && apt-get install -y kubeadm=1.19.0-00 && \
+apt-mark hold kubeadm
+
+kubeadm upgrade plan
+
+kubeadm upgrade apply v1.19.0
+
+apt-mark unhold kubelet kubectl && \
+apt-get update && apt-get install -y kubelet=1.19.0-00 kubectl=1.19.0-00 && \
+apt-mark hold kubelet kubectl
+
+ETCDCTL_API=3 etcdctl --endpoints=https://[127.0.0.1]:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.crt --key=/etc/kubernetes/pki/etcd/server.key snapshot save /opt/snapshot-pre-boot.db
+
+ETCDCTL_API=3 etcdctl  --data-dir /var/lib/etcd-from-backup \
+snapshot restore /opt/snapshot-pre-boot.db
+
+===================================================================================================
+Task1:
+======================================================
+Cluster upgrade process ---/etc/kubernetes/admin.conf
+-------------------------------
+Step1:
+-----
+kubectl get nodes
+kubectl drain controlplane
+kubectl drain controlplane --ignore-daemonsets 
+
+Step2:
+-------
+Determine which version to upgrade
+-----------------------------------
+apt update
+apt-cache madison kubeadm
+# find the latest 1.20 version in the list
+# it should look like 1.20.x-00, where x is the latest patch
+
+Step3:
+------
+Upgrading control plane nodes 
+--------------------------------
+First upgrade kubeadm utility
+----------
+apt-mark unhold kubeadm && \
+apt-get update && apt-get install -y kubeadm=1.19.0-00 && \
+apt-mark hold kubeadm
+
+# since apt-get version 1.1 you can also use the following method
+apt-get update && \
+apt-get install -y --allow-change-held-packages kubeadm=1.20.x-00
+
+kubeadm version
+kubeadm upgrade plan
+kubeadm upgrade apply v1.19.0
+
+Step4:
+------
+For upgrading the other control plane nodes
+------------------------------------------
+Same as the first control plane node but use:
+
+sudo kubeadm upgrade node
+instead of:
+sudo kubeadm upgrade apply
+
+Step5:
+--------
+# replace <node-to-drain> with the name of your node you are draining
+kubectl drain <node-to-drain> --ignore-daemonsets
+
+Upgrade kubelet and kubectl 
+apt-mark unhold kubelet kubectl && \
+apt-get update && apt-get install -y kubelet=1.19.0-00 kubectl=1.19.0-00 && \
+apt-mark hold kubelet kubectl
+
+Restart the kubelet:
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+Step6:
+-------
+Bring the node back online by marking it schedulable:
+---------------------------------
+kubectl uncordon <node-to-drain>
+ Then verify the nodes 
+ 
+Task2:
+===============================================
+Upgrade worker nodes
+===============================================
+Drain the node 
+==============================
+
+Step1:
+------
+# replace x in 1.20.x-00 with the latest patch version
+apt-mark unhold kubeadm && \
+apt-get update && apt-get install -y kubeadm=1.19.0-00 && \
+apt-mark hold kubeadm
+-
+# since apt-get version 1.1 you can also use the following method
+apt-get update && \
+apt-get install -y --allow-change-held-packages kubeadm=1.19.0-00
+
+Step2:
+-----
+sudo kubeadm upgrade node
+
+Step3:
+-----
+# replace <node-to-drain> with the name of your node you are draining
+kubectl drain <node-to-drain> --ignore-daemonsets
+
+Step4:
+------
+Upgrade kubelet and kubectl 
+---------------------------
+# replace x in 1.20.x-00 with the latest patch version
+apt-mark unhold kubelet kubectl && \
+apt-get update && apt-get install -y kubelet=1.20.x-00 kubectl=1.20.x-00 && \
+apt-mark hold kubelet kubectl
+-
+# since apt-get version 1.1 you can also use the following method
+apt-get update && \
+apt-get install -y --allow-change-held-packages kubelet=1.20.x-00 kubectl=1.20.x-00
+
+sudo kubeadm upgrade node
+
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+Step5:
+-----
+Bring the node back online by marking it schedulable:
+
+# replace <node-to-drain> with the name of your node
+kubectl uncordon <node-to-drain>
+
+kubectl get nodes
