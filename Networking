@@ -15,3 +15,18 @@ kubectl get pods --all-namespaces -o jsonpath="{.items[*].spec.containers[*].ima
 
 kubectl get pods --all-namespaces -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\t"}{range .spec.containers[*]}{.image}{", "}{end}{end}' |\
 sort
+====================================================================
+Print the names of all deployments in the admin2406 namespace in the following format:
+DEPLOYMENT CONTAINER_IMAGE READY_REPLICAS NAMESPACE
+<deployment name> <container image used> <ready replica count> <Namespace>
+. The data should be sorted by the increasing order of the deployment name.
+
+Example:
+DEPLOYMENT CONTAINER_IMAGE READY_REPLICAS NAMESPACE
+deploy0 nginx:alpine 1 admin2406
+Write the result to the file /opt/admin2406_data.
+
+Hint: Make use of -o custom-columns and --sort-by to print the data in the required format.
+------------
+kubectl get deployments -n kube-system -o custom-columns=DEPLOYMENT:.metadata.name,CONTAINER_IMAGE:.spec.template.spec.containers[*].image,READY_REPLICAS:.spec.replicas,NAMESPACE:metadata.namespace
+==============================================
