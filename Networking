@@ -4,4 +4,14 @@ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl versio
 To get list of taint nodes
 ===================================
 kubectl get nodes -o jsonpath='{.items[].spec.taints[?(@.effect=="NoSchedule")].effect}{"\t"}{.items[].metadata.name}' | cut -f 2,3
+kubectl get pods --all-namespaces -o json | grep -i "\"image"\"
 
+kubectl get pods --all-namespaces -o jsonpath="{..image}" |\
+tr -s '[[:space:]]' '\n' |\
+sort |\
+uniq -c
+
+kubectl get pods --all-namespaces -o jsonpath="{.items[*].spec.containers[*].image}"
+
+kubectl get pods --all-namespaces -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\t"}{range .spec.containers[*]}{.image}{", "}{end}{end}' |\
+sort
