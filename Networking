@@ -28,5 +28,7 @@ Write the result to the file /opt/admin2406_data.
 
 Hint: Make use of -o custom-columns and --sort-by to print the data in the required format.
 ------------
-kubectl get deployments -n kube-system -o custom-columns=DEPLOYMENT:.metadata.name,CONTAINER_IMAGE:.spec.template.spec.containers[*].image,READY_REPLICAS:.spec.replicas,NAMESPACE:metadata.namespace
+kubectl get deployments -n kube-system -o custom-columns=DEPLOYMENT:.metadata.name,CONTAINER_IMAGE:.spec.template.spec.containers[*].image,READY_REPLICAS:.spec.replicas,NAMESPACE:.metadata.namespace
+
+kubectl get deployments -n kube-system --sort-by='{.metadata.name}' -o custom-columns=DEPLOYMENT:metadata.name,CONTAINER_IMAGE:.spec.template.spec.containers[*].image,READY_REPLICAS:.spec.replicas,NAMESPACE:.metadata.namespace
 ==============================================
