@@ -1,0 +1,67 @@
+1) Please check the cluster upgrade process doc.
+
+2)
+kubectl get deployments -n admin2406 --sort-by='{.metadata.name}' -o custom-columns=DEPLOYMENT:metadata.name,CONTAINER_IMAGE:.spec.template.spec.containers[*].image,READY_REPLICAS:.spec.replicas,NAMESPACE:.metadata.namespace
+
+3)
+kubectl create deployment nginx-deploy --image=nginx:1.16
+
+kubectl scale deployment nginx-deploy --replicas=1
+
+kubectl set image deployment/nginx-deploy nginx=nginx:1.17 --record
+
+4)
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: slow-storage
+  namespace: alpha
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+controlplane $ kubectl apply -f sc.yaml 
+storageclass.storage.k8s.io/slow-storage created
+controlplane $ kubectl -n alpha get pv alpha-pv -o yaml > pv.yaml
+In pv file modify the storageclass as slow-storage
+
+controlplane $ kubectl -n alpha get pvc alpha-claim -o yaml > pvc.yaml
+In pvc file modify accessModes, storage value as per pv
+
+controlplane $ kubectl -n alpha get deployments alpha-mysql -o yaml > alpha_dep.yaml
+ here modify the storageclass as slow-storage
+ Delete and recreate all 3 objects above
+ 
+5)
+ETCDCTL_API=3 etcdctl --endpoints=https://[127.0.0.1]:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt --cert=/etc/kubernetes/pki/etcd/server.crt --key=/etc/kubernetes/pki/etcd/server.key snapshot save /opt/etcd-backup.db
+
+6)
+Create a pod called secret-1401 in the admin1401 namespace using the busybox image. The container within the pod should be called secret-admin and should sleep for 4800 seconds.
+
+The container should mount a read-only secret volume called secret-volume at the path /etc/secret-volume. The secret being mounted has already been created for you and is called dotfile-secret.
+--
+kubectl run secret-1401 -n admin1401 --image=busybox --command sleep 4800
+then modify as below
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-1401
+  namespace: admin1401
+spec:
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: dotfile-secret
+  containers:
+  - name: secret-admin
+    image: busybox
+    command:
+    - sleep
+    - "4800"   
+    volumeMounts:
+    - name: secret-volume
+      readOnly: true
+      mountPath: "/etc/secret-volume"
+      
+      
