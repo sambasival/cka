@@ -64,4 +64,41 @@ spec:
       readOnly: true
       mountPath: "/etc/secret-volume"
       
-      
+ ================================================================================================================
+ KodeKloud --  MOCK EXAM -1 
+ ----------------------------------------------------
+ kubectl run pod nginx-pod --image=nginx:alpine
+
+kubectl run pod messaging --image=redis:alpine  --labels="tier=msg"
+
+kubectl create namespace apx-x9984574
+
+kubectl get nodes -o json > /opt/outputs/nodes-z3444kd9.json
+
+kubectl expose pod messaging --labels="tier=msg" --type="ClusterIP" --port=6379 --name=messaging-service
+
+kubectl create deployment hr-web-app --image=kodekloud/webapp-color --replicas=2
+
+kubectl run static-busybox --image=busybox --command sleep 1000 --dry-run=client -o yaml > static-busybox.yaml 
+-- copy to /etc/kubernetes/manifests
+
+kubectl expose pod  hr-web-app --type=NodePort --port=8080  --name=hr-web-app-service --dry-run=client -o yaml > hrwebapp_svc.yaml
+
+kubectl get node -o jsonpath='{ $.items[*].status.nodeInfo.osImage }' > /opt/outputs/nodes_os_x43kj56.txt
+
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-analytics
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/pv/data-analytics"
+
+ 
