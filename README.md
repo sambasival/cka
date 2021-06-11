@@ -6,3 +6,6 @@ https://static1.squarespace.com/static/5df3d8c5d2be5962e4f87890/t/5e38d15d6b94e8
 https://github.com/walidshaari/Kubernetes-Certified-Administrator
 
 https://medium.com/@sensri108/practice-examples-dumps-tips-for-cka-ckad-certified-kubernetes-administrator-exam-by-cncf-4826233ccc27
+
+
+https://www.infracloud.io/blogs/prepare-cka-ckad-certification/
